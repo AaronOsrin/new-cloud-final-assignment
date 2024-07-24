@@ -1,0 +1,2 @@
+/search?title=The Great Gatsby
+/search?author=F. Scott Fitzgerald
