@@ -56,6 +56,12 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
+      - name: Clean up Docker environment
+        run: |
+          docker ps -q | xargs -r docker stop
+          docker ps -a -q | xargs -r docker rm
+          docker network prune -f || true
+
       - name: Start Docker Compose
         run: docker-compose up -d
 
@@ -99,6 +105,12 @@ jobs:
 
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
+
+      - name: Clean up Docker environment
+        run: |
+          docker ps -q | xargs -r docker stop
+          docker ps -a -q | xargs -r docker rm
+          docker network prune -f || true
 
       - name: Start Docker Compose
         run: docker-compose up -d
