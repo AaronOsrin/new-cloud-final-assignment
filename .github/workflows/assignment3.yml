@@ -104,7 +104,12 @@ jobs:
         run: docker-compose up -d
 
       - name: Check if query.txt exists
-        run: ls -la && cat query.txt || echo "query.txt not found"
+        run: |
+          if [ ! -f query.txt ]; then
+            echo "query.txt not found" && exit 1
+          else
+            echo "query.txt found"
+          fi
 
       - name: Read and execute queries
         run: |
