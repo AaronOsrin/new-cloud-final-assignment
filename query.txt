@@ -1,4 +1,4 @@
 /
-GET /books
-GET /books/1
-GET /books/isbn/9780141199078
+/books
+/books/1
+/books/isbn/9780141199078
