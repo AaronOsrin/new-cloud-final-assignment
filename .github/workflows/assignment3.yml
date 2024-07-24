@@ -56,12 +56,6 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
-      - name: Stop and Remove Existing Containers
-        run: |
-          docker-compose down
-          docker stop $(docker ps -aq) || true
-          docker rm $(docker ps -aq) || true
-
       - name: Start Docker Compose
         run: docker-compose up -d
 
@@ -106,14 +100,11 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
-      - name: Stop and Remove Existing Containers
-        run: |
-          docker-compose down
-          docker stop $(docker ps -aq) || true
-          docker rm $(docker ps -aq) || true
-
       - name: Start Docker Compose
         run: docker-compose up -d
+
+      - name: Check if query.txt exists
+        run: ls -la && cat query.txt || echo "query.txt not found"
 
       - name: Read and execute queries
         run: |
