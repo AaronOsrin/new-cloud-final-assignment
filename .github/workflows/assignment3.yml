@@ -42,11 +42,6 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
-      web:
-        image: bookclub-api
-        options: --entrypoint "tail -f /dev/null"
-        ports:
-          - 5001:5001
 
     steps:
       - name: Checkout code
@@ -60,6 +55,9 @@ jobs:
 
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
+
+      - name: Start Docker Compose
+        run: docker-compose up -d
 
       - name: Install dependencies
         run: pip install pytest requests
@@ -88,11 +86,6 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
-      web:
-        image: bookclub-api
-        options: --entrypoint "tail -f /dev/null"
-        ports:
-          - 5001:5001
 
     steps:
       - name: Checkout code
@@ -107,9 +100,11 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
+      - name: Start Docker Compose
+        run: docker-compose up -d
+
       - name: Read and execute queries
         run: |
-          docker-compose up -d
           while read -r query; do
             response=$(curl -s "http://localhost:5001/books${query}")
             echo -e "query: ${query}\nresponse: ${response}\n" >> response.txt
