@@ -81,11 +81,6 @@ jobs:
   query:
     runs-on: ubuntu-latest
     needs: test
-    services:
-      db:
-        image: mongo
-        ports:
-          - 27017:27017
 
     steps:
       - name: Checkout code
@@ -99,9 +94,6 @@ jobs:
 
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
-
-      - name: Start Docker Compose
-        run: docker-compose up -d
 
       - name: Check if query.txt exists
         run: |
