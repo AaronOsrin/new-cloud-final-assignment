@@ -1,20 +1,16 @@
 name: assignment3
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -22,18 +18,15 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-
       - name: Build the Docker Image
         run: |
           docker build -t bookclub-api . && echo "image successfully built" >> log.txt || (echo "image not able to be built" >> log.txt && exit 1)
           docker save bookclub-api -o bookclub-api-image.tar
-
       - name: Upload Image to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: bookclub-api-image
           path: bookclub-api-image.tar
-
   test:
     runs-on: ubuntu-latest
     needs: build
@@ -42,58 +35,66 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Download Docker Image
         uses: actions/download-artifact@v2
         with:
           name: bookclub-api-image
           path: .
-
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
+      - name: Clean up Docker environment
+        run: |
+          docker ps -q | xargs -r docker stop
+          docker ps -a -q | xargs -r docker rm
+          docker network prune -f || true
       - name: Start Docker Compose
         run: docker-compose up -d
 
       - name: Install dependencies
         run: pip install pytest requests
-
       - name: Wait for services to be ready
         run: |
           until curl -s http://localhost:5001; do
             echo "Waiting for web service..."
             sleep 5
           done
-
       - name: Run tests
         run: pytest -v tests/assn3_tests.py > assn3_test_results.txt
-
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
           name: assn3_test_results.txt
           path: assn3_test_results.txt
-
   query:
     runs-on: ubuntu-latest
     needs: test
-
+    services:
+      db:
+        image: mongo
+        ports:
+          - 27017:27017
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Download Docker Image
         uses: actions/download-artifact@v2
         with:
           name: bookclub-api-image
           path: .
-
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
+
+      - name: Clean up Docker environment
+        run: |
+          docker ps -q | xargs -r docker stop
+          docker ps -a -q | xargs -r docker rm
+          docker network prune -f || true
+      - name: Start Docker Compose
+        run: docker-compose up -d
 
       - name: Check if query.txt exists
         run: |
@@ -102,14 +103,12 @@ jobs:
           else
             echo "query.txt found"
           fi
-
       - name: Read and execute queries
         run: |
           while read -r query; do
             response=$(curl -s "http://localhost:5001/books${query}")
             echo -e "query: ${query}\nresponse: ${response}\n" >> response.txt
           done < query.txt
-
       - name: Upload query results
         uses: actions/upload-artifact@v2
         with:
