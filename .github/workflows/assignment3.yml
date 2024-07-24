@@ -45,7 +45,6 @@ jobs:
           path: .
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
-
       - name: Clean up Docker environment
         run: |
           docker ps -q | xargs -r docker stop
@@ -53,7 +52,6 @@ jobs:
           docker network prune -f || true
       - name: Start Docker Compose
         run: docker-compose up -d
-
       - name: Install dependencies
         run: pip install pytest requests
       - name: Wait for services to be ready
@@ -70,54 +68,52 @@ jobs:
           name: assn3_test_results.txt
           path: assn3_test_results.txt
   query:
-  runs-on: ubuntu-latest
-  needs: test
-  services:
-    db:
-      image: mongo
-      ports:
-        - 27017:27017
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Download Docker Image
-      uses: actions/download-artifact@v2
-      with:
-        name: bookclub-api-image
-        path: .
-    - name: Load Docker Image
-      run: docker load --input bookclub-api-image.tar
-
-    - name: Clean up Docker environment
-      run: |
-        docker ps -q | xargs -r docker stop
-        docker ps -a -q | xargs -r docker rm
-        docker network prune -f || true
-    - name: Start Docker Compose
-      run: docker-compose up -d
-
-    - name: Wait for web service to be ready
-      run: |
-        until curl -s http://localhost:5001; do
-          echo "Waiting for web service..."
-          sleep 5
-        done
-    - name: Check if query.txt exists
-      run: |
-        if [ ! -f query.txt ]; then
-          echo "query.txt not found" && exit 1
-        fi
-    - name: Read and execute queries
-      run: |
-        while IFS= read -r line; do
-          echo "Executing query for: $line"
-          response=$(curl -s "http://localhost:5001$line")
-          echo "query: $line" >> response.txt
-          echo "response: $response" >> response.txt
-          echo "" >> response.txt
-        done < query.txt
-    - name: Upload query results
-      uses: actions/upload-artifact@v2
-      with:
-        name: response.txt
-        path: response.txt
+    runs-on: ubuntu-latest
+    needs: test
+    services:
+      db:
+        image: mongo
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Download Docker Image
+        uses: actions/download-artifact@v2
+        with:
+          name: bookclub-api-image
+          path: .
+      - name: Load Docker Image
+        run: docker load --input bookclub-api-image.tar
+      - name: Clean up Docker environment
+        run: |
+          docker ps -q | xargs -r docker stop
+          docker ps -a -q | xargs -r docker rm
+          docker network prune -f || true
+      - name: Start Docker Compose
+        run: docker-compose up -d
+      - name: Wait for web service to be ready
+        run: |
+          until curl -s http://localhost:5001; do
+            echo "Waiting for web service..."
+            sleep 5
+          done
+      - name: Check if query.txt exists
+        run: |
+          if [ ! -f query.txt ]; then
+            echo "query.txt not found" && exit 1
+          fi
+      - name: Read and execute queries
+        run: |
+          while IFS= read -r line; do
+            echo "Executing query for: $line"
+            response=$(curl -s "http://localhost:5001$line")
+            echo "query: $line" >> response.txt
+            echo "response: $response" >> response.txt
+            echo "" >> response.txt
+          done < query.txt
+      - name: Upload query results
+        uses: actions/upload-artifact@v2
+        with:
+          name: response.txt
+          path: response.txt
