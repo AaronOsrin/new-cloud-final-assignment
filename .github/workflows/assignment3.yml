@@ -23,27 +23,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build Docker image
-        run: docker build -t bookclub-api .
+      - name: Build the Docker Image
+        run: |
+          docker build -t bookclub-api . && echo "image successfully built" >> log.txt || (echo "image not able to be built" >> log.txt && exit 1)
+          docker save bookclub-api -o bookclub-api-image.tar
 
-      - name: Log build status
-        run: echo "$(date -Iminutes)\nstudent-name\nimage successfully built" > log.txt || echo "$(date -Iminutes)\nstudent-name\nimage not able to be built" > log.txt
-        shell: bash
-
-      - name: Upload log
+      - name: Upload Image to GitHub
         uses: actions/upload-artifact@v2
         with:
-          name: log.txt
-          path: log.txt
-
-      - name: Save Docker image
-        run: docker save bookclub-api -o bookclub-api.tar
-
-      - name: Upload Docker image
-        uses: actions/upload-artifact@v2
-        with:
-          name: bookclub-api.tar
-          path: bookclub-api.tar
+          name: bookclub-api-image
+          path: bookclub-api-image.tar
 
   test:
     runs-on: ubuntu-latest
@@ -63,14 +52,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download Docker image
+      - name: Download Docker Image
         uses: actions/download-artifact@v2
         with:
-          name: bookclub-api.tar
+          name: bookclub-api-image
           path: .
 
-      - name: Load Docker image
-        run: docker load -i bookclub-api.tar
+      - name: Load Docker Image
+        run: docker load --input bookclub-api-image.tar
 
       - name: Install dependencies
         run: pip install pytest requests
@@ -109,14 +98,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download Docker image
+      - name: Download Docker Image
         uses: actions/download-artifact@v2
         with:
-          name: bookclub-api.tar
+          name: bookclub-api-image
           path: .
 
-      - name: Load Docker image
-        run: docker load -i bookclub-api.tar
+      - name: Load Docker Image
+        run: docker load --input bookclub-api-image.tar
 
       - name: Read and execute queries
         run: |
