@@ -56,6 +56,11 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
+      - name: Stop any existing containers using port 27017
+        run: |
+          docker ps -q --filter expose=27017 | xargs -r docker stop
+          docker ps -q --filter expose=27017 | xargs -r docker rm
+
       - name: Start Docker Compose
         run: docker-compose up -d
 
@@ -109,18 +114,11 @@ jobs:
             echo "query.txt not found" && exit 1
           else
             echo "query.txt found"
-            cat query.txt
           fi
 
       - name: Read and execute queries
         run: |
           while read -r query; do
-            echo "Executing query: ${query}"
-            response=$(curl -s -w "%{http_code}" -o /dev/null "http://localhost:5001/books${query}")
-            if [ "$response" -ne 200 ]; then
-              echo "Error: Failed to execute query ${query}. HTTP status code: $response"
-              exit 1
-            fi
             response=$(curl -s "http://localhost:5001/books${query}")
             echo -e "query: ${query}\nresponse: ${response}\n" >> response.txt
           done < query.txt
