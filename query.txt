@@ -1,2 +1,4 @@
-/search?title=The Great Gatsby
-/search?author=F. Scott Fitzgerald
+/
+GET /books
+GET /books/1
+GET /books/isbn/9780141199078
