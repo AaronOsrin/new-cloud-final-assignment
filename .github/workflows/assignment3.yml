@@ -56,11 +56,6 @@ jobs:
       - name: Load Docker Image
         run: docker load --input bookclub-api-image.tar
 
-      - name: Stop any existing containers using port 27017
-        run: |
-          docker ps -q --filter expose=27017 | xargs -r docker stop
-          docker ps -q --filter expose=27017 | xargs -r docker rm
-
       - name: Start Docker Compose
         run: docker-compose up -d
 
